@@ -1,18 +1,34 @@
 Freemium
 ========
 
-What's this? A functional system for offering one or many levels of service subscriptions, and charging through some common gateway.
-But what about ActiveMerchant? Well, it's designed for retail sales.
-But what about TrustCommerce::Subscription? Well, that's just an API to one gateway, it's not a general plan for subscription management.
+The Freemium plugin attempts to encapsulate the Right Way to offer service subscriptions. It is built to handle multiple subscription plans (free, premium, premium plus, etc.), let you control your own invoices, and to interact with any merchant gateway that supports either automated recurring billing or credit card storage.
 
-Being careful means: only keeping track of how far out a subscriber has payed, and even then requiring a billing attempt before expiring the account.
+As may already be obvious, it differs from ActiveMerchant and TrustCommerce::Subscription in fundamental ways: ActiveMerchant is geared towards one-off retail sales, and TrustCommerce::Subscription is only a small API to one particular gateway.
+
+This plugin was born out of my attempts to figure out the correct way to handle subscriptions. I decided that the safest/cleanest way was to simply keep track of how far out the subscription had been paid, and when that date came near, bill the subscription again to extend the paid_through date. The approach has turned out well, I think, though I strongly encourage anyone and everyone to review the processes in this plugin to make sure the assumptions it makes are appropriate.
 
 Install
 =======
 
-Just describe your service plans by creating SubscriptionPlan records, configure your Gateway, then start hooking your User records up with Subscriptions. Ok, yeah, I need to go into more detail ...
+1) Generate and run the migration:
 
-You'll want to add `script/runner Subscription.run_billing` to a daily cron task. This will either initiate billing (manual billing) or retrieve recent transactions (automated recurring billing), then expire any subscriptions that have been pastdue for too long (accounting for a grace period).
+  > ./script/generate freemium_migration
+  > rake db:migrate
+
+2) Create config/initializers/freemium.rb and configure at least the following:
+
+  * gateway (pick one, then see rdoc for your gateway's options to see what needs to be configured (api key, etc.))
+  * billing method (set manual_billing = false if you're using your gateway's automated recurring billing system)
+  * grace period (in days, zero days grace is ok)
+  * mailer (for customized invoices, etc.)
+
+3) Populate the database with your subscription plan (create a migration to create SubscriptionPlan records)
+
+4) Create association from your User model (or whatever) to the Subscription model
+
+5) Add `./script/runner Subscription.run_billing` to a daily cron task. [note: is this the right syntax?]
+
+6) Set up your application to create subscriptions by doing whatever it takes to get a unique billing key. This might mean storing the credit card (e.g. TrustCommerce Citadel) and/or setting up automated recurring billing, or getting the three keys from Amazon FPS. Most of these gateways don't have concrete API classes in Freemium yet.
 
 Expiration
 ==========
@@ -28,24 +44,9 @@ Misc:
 Todo
 ====
 
-VARIATIONS
-  prorate_on_upgrade?
-
-remote system subscription maintenance
-  if signup flow goes through third-party (Amazon, PayPal)
-    need a controller to receive signup notification and create the subscription
-    observe subscription#destroy
-  else (TrustCommerce, Authorize.net)
-    observe subscription#create
-    observe subscription#destroy
-    store/unstore methods
-
-NEXT
-  process for creating a subscription
-    might be created with a credit card, in which case we'd need to "store"
-    might be created with a billing key (amazon/paypal)
-    well, why not just always assume it'll be created with a billing key and forget about the "store" action? because it'd be nice to embrace that as well.
-  plan how to recover a subscription during grace period
-  documentation
+observe subscription#destroy -> cancel
+plan how to recover a subscription during grace period
+documentation
+prorate_on_upgrade option
 
 Copyright (c) 2007 Lance Ivy, released under the MIT license

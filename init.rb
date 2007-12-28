@@ -1,3 +1,4 @@
+# todo: use autoloading instead
 require 'money'
 require 'subscription'
 require 'subscription_mailer'
