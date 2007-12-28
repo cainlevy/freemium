@@ -16,6 +16,80 @@ class SubscriptionTest < Test::Unit::TestCase
     assert_equal Money.new(840), subscriptions(:bobs_subscription).remaining_value
   end
 
+  ##
+  ## Validations
+  ##
+
+  def test_creating_subscription
+    subscription = create_subscription
+    assert !subscription.new_record?, subscription.errors.full_messages.to_sentence
+  end
+
+  def test_missing_fields
+    [:subscription_plan, :subscribable].each do |field|
+      subscription = create_subscription(field => nil)
+      assert subscription.new_record?
+      assert subscription.errors.on(field)
+    end
+  end
+
+
+  ##
+  ## Receiving payment
+  ##
+
+  def test_receive_monthly_payment
+    subscription = subscriptions(:bobs_subscription)
+    paid_through = subscription.paid_through
+    subscription.receive_payment!(subscription_plans(:basic).rate)
+    assert_equal (paid_through >> 1).to_s, subscription.paid_through.to_s, "extended by one month"
+  end
+
+  def test_receive_quarterly_payment
+    subscription = subscriptions(:bobs_subscription)
+    paid_through = subscription.paid_through
+    subscription.receive_payment!(subscription_plans(:basic).rate * 3)
+    assert_equal (paid_through >> 3).to_s, subscription.paid_through.to_s, "extended by three months"
+  end
+
+  def test_receive_partial_payment
+    subscription = subscriptions(:bobs_subscription)
+    paid_through = subscription.paid_through
+    subscription.receive_payment!(subscription_plans(:basic).rate * 0.5)
+    assert_equal (paid_through + 15).to_s, subscription.paid_through.to_s, "extended by 15 days"
+  end
+
+  def test_receiving_payment_sends_invoice
+    ActionMailer::Base.deliveries = []
+    subscriptions(:bobs_subscription).receive_payment!(subscription_plans(:basic).rate)
+    assert_equal 1, ActionMailer::Base.deliveries.size
+  end
+
+  ##
+  ## Expiration
+  ##
+
+  def test_instance_expire
+    ActionMailer::Base.deliveries = []
+    subscriptions(:bobs_subscription).expire!
+    assert_equal 1, ActionMailer::Base.deliveries.size
+    assert_equal subscription_plans(:free), subscriptions(:bobs_subscription).subscription_plan
+  end
+
+  def test_class_expire
+    subscription = create_subscription(:paid_through => Date.today - 4, :expire_on => Date.today)
+    ActionMailer::Base.deliveries = []
+    assert_equal subscription_plans(:basic), subscription.subscription_plan
+    Subscription.expire
+    assert_equal subscription_plans(:free), subscription.reload.subscription_plan
+    assert ActionMailer::Base.deliveries.size > 0
+  end
+
+  def test_expire_after_grace_sends_warning
+    ActionMailer::Base.deliveries = []
+    subscriptions(:bobs_subscription).expire_after_grace!
+    assert_equal 1, ActionMailer::Base.deliveries.size
+  end
   def test_expire_after_grace
     assert_nil subscriptions(:bobs_subscription).expire_on
     subscriptions(:bobs_subscription).paid_through = Date.today - 1
@@ -55,68 +129,6 @@ class SubscriptionTest < Test::Unit::TestCase
     assert_equal -1, subscription.remaining_days_of_grace
     assert !subscription.in_grace?
     assert subscription.expired?
-  end
-
-  def test_receive_monthly_payment
-    subscription = subscriptions(:bobs_subscription)
-    paid_through = subscription.paid_through
-    subscription.receive_payment!(subscription_plans(:basic).rate)
-    assert_equal (paid_through >> 1).to_s, subscription.paid_through.to_s, "extended by one month"
-  end
-
-  def test_receive_quarterly_payment
-    subscription = subscriptions(:bobs_subscription)
-    paid_through = subscription.paid_through
-    subscription.receive_payment!(subscription_plans(:basic).rate * 3)
-    assert_equal (paid_through >> 3).to_s, subscription.paid_through.to_s, "extended by three months"
-  end
-
-  def test_receive_partial_payment
-    subscription = subscriptions(:bobs_subscription)
-    paid_through = subscription.paid_through
-    subscription.receive_payment!(subscription_plans(:basic).rate * 0.5)
-    assert_equal (paid_through + 15).to_s, subscription.paid_through.to_s, "extended by 15 days"
-  end
-
-  def test_receiving_payment_sends_invoice
-    ActionMailer::Base.deliveries = []
-    subscriptions(:bobs_subscription).receive_payment!(subscription_plans(:basic).rate)
-    assert_equal 1, ActionMailer::Base.deliveries.size
-  end
-
-  def test_expire_after_grace_sends_warning
-    ActionMailer::Base.deliveries = []
-    subscriptions(:bobs_subscription).expire_after_grace!
-    assert_equal 1, ActionMailer::Base.deliveries.size
-  end
-
-  def test_creating_subscription
-    subscription = create_subscription
-    assert !subscription.new_record?, subscription.errors.full_messages.to_sentence
-  end
-
-  def test_missing_fields
-    [:subscription_plan, :subscribable].each do |field|
-      subscription = create_subscription(field => nil)
-      assert subscription.new_record?
-      assert subscription.errors.on(field)
-    end
-  end
-
-  def test_instance_expire
-    ActionMailer::Base.deliveries = []
-    subscriptions(:bobs_subscription).expire!
-    assert_equal 1, ActionMailer::Base.deliveries.size
-    assert_equal subscription_plans(:free), subscriptions(:bobs_subscription).subscription_plan
-  end
-
-  def test_class_expire
-    subscription = create_subscription(:paid_through => Date.today - 4, :expire_on => Date.today)
-    ActionMailer::Base.deliveries = []
-    assert_equal subscription_plans(:basic), subscription.subscription_plan
-    Subscription.expire
-    assert_equal subscription_plans(:free), subscription.reload.subscription_plan
-    assert ActionMailer::Base.deliveries.size > 0
   end
 
   protected
