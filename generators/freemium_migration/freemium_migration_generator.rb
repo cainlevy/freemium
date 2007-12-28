@@ -6,7 +6,7 @@ class FreemiumMigrationGenerator < Rails::Generator::NamedBase
 
   def manifest
     record do |m|
-      m.migration_template "migration.erb", "db/migrate", :migration_file_name => "create_subscription_and_plan"
+      m.migration_template "migration.rb", "db/migrate", :migration_file_name => "create_subscription_and_plan"
     end
   end
 end

@@ -1,4 +1,4 @@
-class <%= migration_name %> < ActiveRecord::Migration
+class CreateSubscriptionAndPlan < ActiveRecord::Migration
   def self.up
     create_table :subscription_plans, :force => true do |t|
       t.column :name, :string, :null => false
