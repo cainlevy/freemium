@@ -16,9 +16,16 @@ class CreateSubscriptionAndPlan < ActiveRecord::Migration
       t.column :last_transaction_at, :datetime, :null => true
     end
 
-    add_index :subscriptions, :account_id
-    add_index :subscriptions, :account_type
+    # for polymorphic association queries
+    add_index :subscriptions, :subscribable_id
+    add_index :subscriptions, :subscribable_type
+
+    # for finding due, pastdue, and expiring subscriptions
     add_index :subscriptions, :paid_through
+    add_index :subscriptions, :expire_on
+
+    # for applying transactions from automated recurring billing
+    add_index :subscriptions, :billing_key
   end
 
   def self.down
