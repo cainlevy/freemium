@@ -1,0 +1,5 @@
+Thanks for paying!
+
+  Your Plan: <%= @subscription.subscription_plan.name %> (<%= @subscription.subscription_plan.rate %>/<%= @subscription.subscription_plan.yearly? ? "year" : "month" %>)
+  Paid: <%= @amount %>
+  Paid Through: <%= @subscription.paid_through.to_s %>

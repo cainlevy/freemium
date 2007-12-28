@@ -1,0 +1,8 @@
+bob:
+  id: 1
+  name: Bob
+  email: bob@example.com
+sue:
+  id: 2
+  name: Sue
+  email: sue@example.com

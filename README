@@ -1,0 +1,51 @@
+Freemium
+========
+
+What's this? A functional system for offering one or many levels of service subscriptions, and charging through some common gateway.
+But what about ActiveMerchant? Well, it's designed for retail sales.
+But what about TrustCommerce::Subscription? Well, that's just an API to one gateway, it's not a general plan for subscription management.
+
+Being careful means: only keeping track of how far out a subscriber has payed, and even then requiring a billing attempt before expiring the account.
+
+Install
+=======
+
+Just describe your service plans by creating SubscriptionPlan records, configure your Gateway, then start hooking your User records up with Subscriptions. Ok, yeah, I need to go into more detail ...
+
+You'll want to add `script/runner Subscription.run_billing` to a daily cron task. This will either initiate billing (manual billing) or retrieve recent transactions (automated recurring billing), then expire any subscriptions that have been pastdue for too long (accounting for a grace period).
+
+Expiration
+==========
+
+I've tried to build Freemium with the understanding that sometimes a cron task might not run, and if that happens the customers should not get screwed. That means, for example, not expiring a customer account just because a billing process didn't run. So the process for expiring a subscription is as follows: the first nightly billing process that runs *after* a subscription's last paid day will set the final expiration date of that subscription. The final expiration date will be calculated as a certain number of days (the grace period) after the date of the billing process (grace begins when the program *knows* the account is pastdue). The first billing process that runs on or after the expiration date will then actually expire the subscription.
+
+So there's some possible slack in the timeline. Suppose a subscription is paid through the 14th and there's a 2 day grace period. That means if a billing process runs on the 13th, then not until the 15th, the subscription will be set to expire on the 17th - the subscriber gets an extra day of grace because your billing process didn't run.
+
+Misc:
+* There's no grace period then the same billing process will both set the expiration date and then actually expire the subscription, thanks to the order of events.
+* Expiring a subscription means downgrading it to a free plan (if any) or removing the plan altogether.
+
+Todo
+====
+
+VARIATIONS
+  prorate_on_upgrade?
+
+remote system subscription maintenance
+  if signup flow goes through third-party (Amazon, PayPal)
+    need a controller to receive signup notification and create the subscription
+    observe subscription#destroy
+  else (TrustCommerce, Authorize.net)
+    observe subscription#create
+    observe subscription#destroy
+    store/unstore methods
+
+NEXT
+  process for creating a subscription
+    might be created with a credit card, in which case we'd need to "store"
+    might be created with a billing key (amazon/paypal)
+    well, why not just always assume it'll be created with a billing key and forget about the "store" action? because it'd be nice to embrace that as well.
+  plan how to recover a subscription during grace period
+  documentation
+
+Copyright (c) 2007 Lance Ivy, released under the MIT license

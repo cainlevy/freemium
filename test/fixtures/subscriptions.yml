@@ -1,0 +1,16 @@
+bobs_subscription:
+  id: 1
+  subscribable_id: 1
+  subscribable_type: User
+  subscription_plan_id: 2
+  paid_through: <%= (Date.today + 20).to_s :db %>
+  billing_key: tc00001
+  last_transaction_at: 2007-09-15 12:34:56
+sues_subscription:
+  id: 2
+  subscribable_id: 2
+  subscribable_type: User
+  subscription_plan_id: 1
+  paid_through: 1999-01-01
+  billing_key:
+  last_transaction_at:

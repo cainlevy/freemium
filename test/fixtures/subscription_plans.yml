@@ -1,0 +1,21 @@
+free:
+  id: 1
+  name: Free Access
+  rate_cents: 0
+  yearly: false
+basic:
+  id: 2
+  name: Basic
+  rate_cents: 1295
+  yearly: false
+premium:
+  id: 3
+  name: Premium
+  rate_cents: 2495
+  yearly: false
+yearly:
+  id: 4
+  name: Yearly Basic
+  rate_cents: 27500
+  yearly: true
+
