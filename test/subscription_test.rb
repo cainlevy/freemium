@@ -33,7 +33,6 @@ class SubscriptionTest < Test::Unit::TestCase
     end
   end
 
-
   ##
   ## Receiving payment
   ##
@@ -70,10 +69,13 @@ class SubscriptionTest < Test::Unit::TestCase
   ##
 
   def test_instance_expire
+    Freemium.gateway.expects(:cancel).once.returns(nil)
     ActionMailer::Base.deliveries = []
     subscriptions(:bobs_subscription).expire!
-    assert_equal 1, ActionMailer::Base.deliveries.size
-    assert_equal subscription_plans(:free), subscriptions(:bobs_subscription).subscription_plan
+
+    assert_equal 1, ActionMailer::Base.deliveries.size, "notice is sent to user"
+    assert_equal subscription_plans(:free), subscriptions(:bobs_subscription).subscription_plan, "subscription is downgraded to free"
+    assert_nil subscriptions(:bobs_subscription).reload.billing_key, "billing key is thrown away"
   end
 
   def test_class_expire

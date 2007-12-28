@@ -4,6 +4,14 @@ module Freemium
       def transactions(options = {})
         options
       end
+
+      def charge(*args)
+        args
+      end
+
+      def cancel(*args)
+        args
+      end
     end
   end
 end

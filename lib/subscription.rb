@@ -66,7 +66,13 @@ class Subscription < ActiveRecord::Base
   # sends an expiration email, then downgrades to a free plan (if available) or disassociates the plan altogether
   def expire!
     Freemium.mailer.deliver_expiration_notice(subscribable, self)
+    # downgrade to a free plan (or nil plan, if no free plan is found)
     self.subscription_plan = SubscriptionPlan.find(:first, :conditions => ['rate_cents = 0'])
+    # cancel whatever in the gateway
+    Freemium.gateway.cancel(self.billing_key)
+    # throw away this billing key (they'll have to start all over again)
+    self.billing_key = nil
+    # save all changes
     self.save
   end
 
