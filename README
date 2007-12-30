@@ -3,9 +3,27 @@ Freemium
 
 The Freemium plugin attempts to encapsulate the Right Way to offer service subscriptions. It is built to handle multiple subscription plans (free, premium, premium plus, etc.), let you control your own invoices, and to interact with any merchant gateway that supports either automated recurring billing or credit card storage.
 
-As may already be obvious, it differs from ActiveMerchant and TrustCommerce::Subscription in fundamental ways: ActiveMerchant is geared towards one-off retail sales, and TrustCommerce::Subscription is only a small API to one particular gateway.
+Freemium is complementary to ActiveMerchant. The gateways used by Freemium will often be facades for the ActiveMerchant gateway plus an extra method to retrieve recent transactions. And in any event, Freemium doesn't support the actual storage of credit cards, so you'd probably end up using ActiveMerchant for that anyway.
 
 This plugin was born out of my attempts to figure out the correct way to handle subscriptions. I decided that the safest/cleanest way was to simply keep track of how far out the subscription had been paid, and when that date came near, bill the subscription again to extend the paid_through date. The approach has turned out well, I think, though I strongly encourage anyone and everyone to review the processes in this plugin to make sure the assumptions it makes are appropriate.
+
+Gateway Requirements
+====================
+
+Rule #1: You never want to store credit card numbers yourself. This means that you need a gateway that either provides Automated Recurring Billing (ARB - a common offering) or credit card storage (e.g. TrustCommerce's Citadel).
+
+Freemium will work with any gateway that provides credit card storage, but it will not work with every gateway that provides ARB. Just because your gateway provides ARB doesn't mean that your application can fire-and-forget; you still needs to know about successful transactions (to send invoices) and failed transactions (to send warnings and/or expire a subscription). In order for your *application* to know about these events without your intervention, the ARB module either needs to send event notifications or it needs to provide an API to retrieve and review recent transactions.
+
+Freemium will only work with ARB modules that provide an API to retrieve and review recent transactions. This is by far the safest route, since most gateways only send email notifications that must be manually processed by a human (ugh!) and the others can have unreliable event notification systems (e.g. PayPal, see http://talklikeaduck.denhaven2.com/articles/2007/09/02/how-to-cure-the-paypal-subscription-blues). And in any case, ARB modules that send event notifications hardly ever tell you about successful transactions, so you still have to keep track of the periodic cycles so you can send invoices, which makes the whole ARB thing barely useful.
+
+So what we really need is a list of known good and known bad gateways. The list below is just the beginning, off the top of my head.
+
+  Good Gateways:
+  TrustCommerce with Citadel (can use Citadel and/or ARB)
+  Braintree Payment Solutions (or so I've heard, see SecureVault and/or ARB)
+
+  Bad Gateways:
+  LoudCommerce's LinkPoint (no storage, and no transaction review)
 
 Install
 =======
@@ -17,7 +35,7 @@ Install
 
 2) Create config/initializers/freemium.rb and configure at least the following:
 
-  * gateway (pick one, then see rdoc for your gateway's options to see what needs to be configured (api key, etc.))
+  * gateway (pick one, then see rdoc for your gateway's options to see what needs to be configured (api key, etc.). may rely on configuration of activemerchant module)
   * billing method (set manual_billing = false if you're using your gateway's automated recurring billing system)
   * grace period (in days, zero days grace is ok)
   * mailer (for customized invoices, etc.)
@@ -44,8 +62,8 @@ Misc:
 Todo
 ====
 
-observe subscription#destroy -> cancel
-plan how to recover a subscription during grace period
+linkpoint integration (activemerchant dependency)
+plan how to recover a subscription during grace period (basically, someone would need to create a web interface for the job)
 documentation
 prorate_on_upgrade option
 
