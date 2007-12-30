@@ -12,7 +12,7 @@ Gateway Requirements
 
 Rule #1: You never want to store credit card numbers yourself. This means that you need a gateway that either provides Automated Recurring Billing (ARB - a common offering) or credit card storage (e.g. TrustCommerce's Citadel).
 
-Freemium will work with any gateway that provides credit card storage, but it will not work with every gateway that provides ARB. Just because your gateway provides ARB doesn't mean that your application can fire-and-forget; you still needs to know about successful transactions (to send invoices) and failed transactions (to send warnings and/or expire a subscription). In order for your *application* to know about these events without your intervention, the ARB module either needs to send event notifications or it needs to provide an API to retrieve and review recent transactions.
+Freemium will work with any gateway that provides credit card storage (the preferred method!), but it will not work with every gateway that provides ARB. Just because your gateway provides ARB doesn't mean that your application can fire-and-forget; you still needs to know about successful transactions (to send invoices) and failed transactions (to send warnings and/or expire a subscription). In order for your *application* to know about these events without your intervention, the ARB module either needs to send event notifications or it needs to provide an API to retrieve and review recent transactions.
 
 Freemium will only work with ARB modules that provide an API to retrieve and review recent transactions. This is by far the safest route, since most gateways only send email notifications that must be manually processed by a human (ugh!) and the others can have unreliable event notification systems (e.g. PayPal, see http://talklikeaduck.denhaven2.com/articles/2007/09/02/how-to-cure-the-paypal-subscription-blues). And in any case, ARB modules that send event notifications hardly ever tell you about successful transactions, so you still have to keep track of the periodic cycles so you can send invoices, which makes the whole ARB thing barely useful.
 
@@ -20,7 +20,10 @@ So what we really need is a list of known good and known bad gateways. The list 
 
   Good Gateways:
   TrustCommerce with Citadel (can use Citadel and/or ARB)
-  Braintree Payment Solutions (or so I've heard, see SecureVault and/or ARB)
+
+  Probably Good Gateways:
+  Braintree Payment Solutions (SecureVault, or ARB if they also offer transaction review API)
+  Authorize.net (CIM, or ARB if they also offer transaction review API)
 
   Bad Gateways:
   LoudCommerce's LinkPoint (no storage, and no transaction review)
