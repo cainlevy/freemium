@@ -133,6 +133,15 @@ class SubscriptionTest < Test::Unit::TestCase
     assert subscription.expired?
   end
 
+  ##
+  ## Deleting (possibly from a cascading delete, such as User.find(5).delete)
+  ##
+
+  def test_deleting_cancels_in_gateway
+    Freemium.gateway.expects(:cancel).once.returns(nil)
+    subscriptions(:bobs_subscription).destroy
+  end
+
   protected
 
   def create_subscription(options = {})

@@ -10,6 +10,7 @@ class Subscription < ActiveRecord::Base
   belongs_to :subscribable, :polymorphic => true
 
   before_validation :set_paid_through
+  after_destroy :cancel_in_remote_system
 
   validates_presence_of :subscribable
   validates_presence_of :subscription_plan
@@ -69,7 +70,7 @@ class Subscription < ActiveRecord::Base
     # downgrade to a free plan (or nil plan, if no free plan is found)
     self.subscription_plan = SubscriptionPlan.find(:first, :conditions => ['rate_cents = 0'])
     # cancel whatever in the gateway
-    Freemium.gateway.cancel(self.billing_key)
+    cancel_in_remote_system
     # throw away this billing key (they'll have to start all over again)
     self.billing_key = nil
     # save all changes
@@ -98,5 +99,9 @@ class Subscription < ActiveRecord::Base
 
   def set_paid_through
     self.paid_through ||= Date.today
+  end
+
+  def cancel_in_remote_system
+    Freemium.gateway.cancel(self.billing_key)
   end
 end

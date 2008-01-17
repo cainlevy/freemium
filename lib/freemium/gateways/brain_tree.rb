@@ -17,16 +17,14 @@ module Freemium
     # = For Testing
     # The URL does not change. If your account is in test mode, no charges will be processed. Otherwise,
     # configure the username and password to be "demo" and "password", respectively.
-    #
-    # TODO: unit and real-world test this class!
     class BrainTree
       URL = 'https://secure.braintreepaymentgateway.com/api/transact.php'
       attr_accessor :username, :password
 
-      # using BrainTree's recurring billing is not possible until this method can be filled out
+      # using BrainTree's recurring billing is not possible until I have their reporting API
       #def transactions(options = {}); end
 
-      # This method extends the base API if you have a SubscriptionsController using Direct Post
+      # Stores a card in SecureVault.
       def store(credit_card, address)
         p = Post.new(URL, {
           :username => self.username,
@@ -39,7 +37,7 @@ module Freemium
         return p
       end
 
-      # This method extends the base API if you have a SubscriptionsController using Direct Post
+      # Updates a card in SecureVault.
       def update(vault_id, credit_card = nil, address = nil)
         p = Post.new(URL, {
           :username => self.username,
@@ -53,6 +51,7 @@ module Freemium
         return p
       end
 
+      # Manually charges a card in SecureVault. Called automatically as part of manual billing process.
       def charge(vault_id, amount)
         p = Post.new(URL, {
           :username => self.username,
@@ -64,6 +63,7 @@ module Freemium
         return Freemium::Transaction.new(:billing_key => vault_id, :amount => amount, :success => p.success?)
       end
 
+      # Removes a card from SecureVault. Called automatically when the subscription expires.
       def cancel(vault_id)
         p = Post.new(URL, {
           :username => self.username,

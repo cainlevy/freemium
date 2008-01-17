@@ -36,14 +36,16 @@ Install
   > ./script/generate freemium_migration
   > rake db:migrate
 
-2) Create config/initializers/freemium.rb and configure at least the following:
+2) Populate the database with your subscription plan (create a migration to create SubscriptionPlan records)
 
-  * gateway (pick one, then see rdoc for your gateway's options to see what needs to be configured (api key, etc.). may rely on configuration of activemerchant module)
+  > ./script/generate migration populate_subscription_plans
+
+3) Create config/initializers/freemium.rb and configure at least the following:
+
+  * gateway (pick one, then see rdoc for your gateway's options to see what needs to be configured (api key, etc.))
   * billing method (set manual_billing = false if you're using your gateway's automated recurring billing system)
   * grace period (in days, zero days grace is ok)
   * mailer (for customized invoices, etc.)
-
-3) Populate the database with your subscription plan (create a migration to create SubscriptionPlan records)
 
 4) Create association from your User model (or whatever) to the Subscription model
 
@@ -62,12 +64,5 @@ Misc:
 * There's no grace period then the same billing process will both set the expiration date and then actually expire the subscription, thanks to the order of events.
 * Expiring a subscription means downgrading it to a free plan (if any) or removing the plan altogether.
 
-Todo
-====
-
-linkpoint integration (activemerchant dependency)
-plan how to recover a subscription during grace period (basically, someone would need to create a web interface for the job)
-documentation
-prorate_on_upgrade option
 
 Copyright (c) 2007 Lance Ivy, released under the MIT license
