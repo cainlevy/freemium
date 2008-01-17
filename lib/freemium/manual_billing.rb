@@ -11,7 +11,7 @@ module Freemium
           Subscription.transaction do
             # attempt to bill (use gateway)
             transaction = Freemium.gateway.charge(subscription.billing_key, subscription.subscription_plan.rate)
-            transaction.success ? subscription.receive_payment!(transaction.amount) : subscription.expire_after_grace!
+            transaction.success? ? subscription.receive_payment!(transaction.amount) : subscription.expire_after_grace!
           end
         end
 

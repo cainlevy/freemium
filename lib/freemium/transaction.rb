@@ -14,5 +14,7 @@ module Freemium
         self.send(setter, v) if respond_to? setter
       end
     end
+
+    alias_method :success?, :success
   end
 end

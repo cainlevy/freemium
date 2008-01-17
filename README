@@ -20,9 +20,9 @@ So what we really need is a list of known good and known bad gateways. The list 
 
   Good Gateways:
   TrustCommerce with Citadel (can use Citadel and/or ARB)
+  Braintree Payment Solutions (SecureVault, or ARB)
 
   Probably Good Gateways:
-  Braintree Payment Solutions (SecureVault, or ARB if they also offer transaction review API)
   Authorize.net (CIM, or ARB if they also offer transaction review API)
 
   Bad Gateways:
