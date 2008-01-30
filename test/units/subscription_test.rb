@@ -69,6 +69,7 @@ class SubscriptionTest < Test::Unit::TestCase
   ##
 
   def test_instance_expire
+    Freemium.expired_plan = subscription_plans(:free)
     Freemium.gateway.expects(:cancel).once.returns(nil)
     ActionMailer::Base.deliveries = []
     subscriptions(:bobs_subscription).expire!
@@ -79,6 +80,7 @@ class SubscriptionTest < Test::Unit::TestCase
   end
 
   def test_class_expire
+    Freemium.expired_plan = subscription_plans(:free)
     subscription = create_subscription(:paid_through => Date.today - 4, :expire_on => Date.today)
     ActionMailer::Base.deliveries = []
     assert_equal subscription_plans(:basic), subscription.subscription_plan

@@ -16,5 +16,8 @@ module Freemium
 
     # How many days to keep an account active after it fails to pay.
     attr_accessor :days_grace
+
+    # What plan to assign to subscriptions that have expired. May be nil.
+    attr_accessor :expired_plan
   end
 end

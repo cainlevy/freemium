@@ -5,4 +5,5 @@ require 'money'
 Freemium.mailer     = SubscriptionMailer
 Freemium.gateway    = Freemium::Gateways::Test.new
 Freemium.days_grace = 3
+Freemium.expired_plan = SubscriptionPlan.find(:first, :conditions => "rate_cents = 0")
 Subscription.send(:include, Freemium.manual_billing ? Freemium::ManualBilling : Freemium::RecurringBilling)
