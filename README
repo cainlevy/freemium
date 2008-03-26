@@ -54,11 +54,14 @@ So there's some possible slack in the timeline. Suppose a subscription is paid t
   grace period    in days, zero days grace is ok
   mailer          for customized invoices, etc.
 
-4) Create association from your User model (or whatever) to the Subscription model
+4) Create a SubscriptionsController (or similar) that does whatever it takes to get a unique billing key. This might mean storing the credit card (e.g. TrustCommerce Citadel) and/or setting up automated recurring billing, or getting the three keys from Amazon FPS. Most of these gateways don't have concrete API classes in Freemium yet. If you write a gateway, let me know and I'll include it.
 
-5) Add `/PATH/TO/DEPLOYED/APP/script/runner -e production Subscription.run_billing' to a daily cron task.
+5) Create association from your User model (or whatever) to the Subscription model.
 
-6) Set up your application to create subscriptions by doing whatever it takes to get a unique billing key. This might mean storing the credit card (e.g. TrustCommerce Citadel) and/or setting up automated recurring billing, or getting the three keys from Amazon FPS. Most of these gateways don't have concrete API classes in Freemium yet. If you write a gateway, let me know and I'll include it.
+6) Add a before_filter (or other logic) to properly enforce your premium plan. The filter should check that the User has an active Subscription to a SubscriptionPlan of the appropriate type.
 
+7) Add `/PATH/TO/DEPLOYED/APP/script/runner -e production Subscription.run_billing' to a daily cron task.
+
+8) Tell me how any of this could be improved. I want this plugin to make freemium billing dead-simple.
 
 Copyright (c) 2007 Lance Ivy, released under the MIT license
