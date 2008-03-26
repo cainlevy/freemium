@@ -14,22 +14,15 @@ module Freemium
       @gateway ||= Freemium::Gateways::Test.new
     end
 
-    # If you want all of the billing to be initiated by Freemium.
-    #
-    # Check whether this option is available for your gateway of choice.
-    # Note that either this or enable_arb_integration must be called for proper setup.
-    def fully_controlled_billing
-      Subscription.send(:include, Freemium::ManualBilling)
-    end
-
-    # If you want the monthly cycles to be handled by your gateway's automated
-    # recurring billing (ARB) system, and Freemium to just keep up-to-date on
-    # transactions.
-    #
-    # Check whether this option is available for your gateway of choice.
-    # Note that either this or fully_controlled_billing must be called for proper setup.
-    def enable_arb_integration
-      Subscription.send(:include, Freemium::RecurringBilling)
+    # You need to specify whether Freemium or your gateway's ARB module will control
+    # the billing process. If your gateway's ARB controls the billing process, then
+    # Freemium will simply try and keep up-to-date on transactions.
+    def billing_controller=(val)
+      case val
+        when :freemium: Subscription.send(:include, Freemium::ManualBilling)
+        when :arb:      Subscription.send(:include, Freemium::RecurringBilling)
+        else raise "unknown billing_controller: #{val}"
+      end
     end
 
     # How many days to keep an account active after it fails to pay.
