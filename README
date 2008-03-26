@@ -43,7 +43,7 @@ Install
 3) Create config/initializers/freemium.rb and configure at least the following:
 
   * gateway (pick one, then see rdoc for your gateway's options to see what needs to be configured (api key, etc.))
-  * billing method (set manual_billing = false if you're using your gateway's automated recurring billing system)
+  * billing method (call Freemium.fully_controlled_billing or Freemium.enable_arb_integration, depending on whether you're using your gateway's ARB module)
   * grace period (in days, zero days grace is ok)
   * mailer (for customized invoices, etc.)
 
