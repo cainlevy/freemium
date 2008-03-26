@@ -5,16 +5,20 @@ module Freemium
       base.extend ClassMethods
     end
 
+    # charges this subscription.
+    # assumes, of course, that this module is mixed in to the Subscription model
+    def charge!
+      self.class.transaction do
+        # attempt to bill (use gateway)
+        transaction = Freemium.gateway.charge(billing_key, subscription_plan.rate)
+        transaction.success? ? receive_payment!(transaction.amount) : expire_after_grace!
+      end
+    end
+
     module ClassMethods
       def run_billing
-        find_billable.each do |subscription|
-          Subscription.transaction do
-            # attempt to bill (use gateway)
-            transaction = Freemium.gateway.charge(subscription.billing_key, subscription.subscription_plan.rate)
-            transaction.success? ? subscription.receive_payment!(transaction.amount) : subscription.expire_after_grace!
-          end
-        end
-
+        # charge all billable subscriptions
+        find_billable.each(&:charge!)
         # actually expire any subscriptions whose time has come
         expire
       end

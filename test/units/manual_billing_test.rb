@@ -8,6 +8,8 @@ class ManualBillingTest < Test::Unit::TestCase
   end
 
   def test_find_billable
+    Subscription.any_instance.stubs(:charge!).returns(true)
+
     # making a one-off fixture set, basically
     create_billable_subscription # this subscription should be billable
     create_billable_subscription(:paid_through => Date.today) # this subscription should be billable
@@ -21,28 +23,43 @@ class ManualBillingTest < Test::Unit::TestCase
     assert expirable.all? {|subscription| !subscription.expire_on or subscription.expire_on < subscription.paid_through}, "subscriptions already expiring aren't billable"
   end
 
-  def test_run_billing
-    subscription = create_billable_subscription
+  def test_charging_a_subscription
+    subscription = Subscription.find(:first)
     paid_through = subscription.paid_through
-    t = Freemium::Transaction.new(:billing_key => subscription.billing_key, :amount => subscription.subscription_plan.rate, :success => true)
-    Freemium.gateway.stubs(:charge).returns(t)
+    Freemium.gateway.stubs(:charge).returns(
+      Freemium::Transaction.new(
+        :billing_key => subscription.billing_key,
+        :amount => subscription.subscription_plan.rate,
+        :success => true
+      )
+    )
 
-    # the actual test
-    Subscription.send :run_billing
+    assert_nothing_raised do subscription.charge! end
     assert_equal (paid_through >> 1).to_s, subscription.reload.paid_through.to_s, "extended by a month"
   end
 
-  def test_run_billing_with_a_failed_transaction
-    subscription = create_billable_subscription
+  def test_failing_to_charge_a_subscription
+    subscription = Subscription.find(:first)
     paid_through = subscription.paid_through
-    t = Freemium::Transaction.new(:billing_key => subscription.billing_key, :amount => subscription.subscription_plan.rate, :success => false)
-    Freemium.gateway.stubs(:charge).returns(t)
+    Freemium.gateway.stubs(:charge).returns(
+      Freemium::Transaction.new(
+        :billing_key => subscription.billing_key,
+        :amount => subscription.subscription_plan.rate,
+        :success => false
+      )
+    )
 
-    # the actual test
     assert_nil subscription.expire_on
-    Subscription.send :run_billing
+    assert_nothing_raised do subscription.charge! end
     assert_equal paid_through, subscription.reload.paid_through, "not extended"
     assert_not_nil subscription.expire_on
+  end
+
+  def test_run_billing_calls_charge_on_billable
+    subscription = Subscription.find(:first)
+    Subscription.stubs(:find_billable).returns([subscription])
+    subscription.expects(:charge!).once
+    Subscription.send :run_billing
   end
 
   protected
