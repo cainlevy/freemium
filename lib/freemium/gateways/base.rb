@@ -1,13 +1,13 @@
 module Freemium
   module Gateways
-    class Base #:nodoc
+    class Base #:nodoc:
       # only needed to support an ARB module. otherwise, the manual billing process will
       # take care of processing transaction information as it happens.
       #
       # concrete classes need to support these options:
-      #   :billing_key - only retrieve transactions for this specific billing key
-      #   :after:      - only retrieve transactions after this datetime (non-inclusive)
-      #   :before:     - only retrieve transactions before this datetime (non-inclusive)
+      #   :billing_key : - only retrieve transactions for this specific billing key
+      #   :after :       - only retrieve transactions after this datetime (non-inclusive)
+      #   :before :      - only retrieve transactions before this datetime (non-inclusive)
       #
       # return value should be a collection of Freemium::Transaction objects.
       def transactions(options = {})
