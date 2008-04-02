@@ -16,5 +16,9 @@ module Freemium
     end
 
     alias_method :success?, :success
+
+    def to_s
+      "#{success? ? "billed" : "failed to bill"} key #{billing_key} for #{amount.format}"
+    end
   end
 end

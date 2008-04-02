@@ -62,6 +62,12 @@ class ManualBillingTest < Test::Unit::TestCase
     Subscription.send :run_billing
   end
 
+  def test_run_billing_sends_report
+    Freemium.stubs(:admin_report_recipients).returns("test@example.com")
+    Freemium.mailer.expects(:deliver_admin_report)
+    Subscription.send :run_billing
+  end
+
   protected
 
   def create_billable_subscription(options = {})

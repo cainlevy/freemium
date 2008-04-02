@@ -25,6 +25,7 @@ class Subscription < ActiveRecord::Base
   # sets the expiration for the subscription based on today and the configured grace period.
   def expire_after_grace!
     self.expire_on = [Date.today, paid_through].max + Freemium.days_grace
+    Freemium.activity_log[self] << "now set to expire on #{self.expire_on}" if Freemium.log?
     Freemium.mailer.deliver_expiration_warning(subscribable, self)
     save!
   end
@@ -66,6 +67,7 @@ class Subscription < ActiveRecord::Base
 
   # sends an expiration email, then downgrades to a free plan
   def expire!
+    Freemium.activity_log[self] << "expired!" if Freemium.log?
     Freemium.mailer.deliver_expiration_notice(subscribable, self)
     # downgrade to a free plan
     self.subscription_plan = Freemium.expired_plan
@@ -93,6 +95,8 @@ class Subscription < ActiveRecord::Base
       # edge case
       self.paid_through + (value.cents / subscription_plan.daily_rate.cents)
     end
+
+    Freemium.activity_log[self] << "now paid through #{self.paid_through}" if Freemium.log?
 
     send_invoice(value)
   end

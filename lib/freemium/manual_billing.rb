@@ -11,16 +11,26 @@ module Freemium
       self.class.transaction do
         # attempt to bill (use gateway)
         transaction = Freemium.gateway.charge(billing_key, subscription_plan.rate)
+        Freemium.activity_log[self] << transaction if Freemium.log?
         transaction.success? ? receive_payment!(transaction.amount) : expire_after_grace!
       end
     end
 
     module ClassMethods
+      # the process you should run periodically
       def run_billing
-        # charge all billable subscriptions
-        find_billable.each(&:charge!)
-        # actually expire any subscriptions whose time has come
-        expire
+        Freemium.with_activity_logging do
+          # charge all billable subscriptions
+          find_billable.each(&:charge!)
+          # actually expire any subscriptions whose time has come
+          expire
+
+          # send the activity report
+          Freemium.mailer.deliver_admin_report(
+            Freemium.admin_report_recipients,
+            Freemium.activity_log
+          ) if Freemium.admin_report_recipients
+        end
       end
 
       protected

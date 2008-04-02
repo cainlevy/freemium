@@ -20,10 +20,16 @@ class SubscriptionMailer < ActionMailer::Base
     @body[:subscription]  = subscription
   end
 
+  def admin_report(admin, activity_log)
+    setup_email(admin)
+    @subject              = "Freemium admin billing report"
+    @body[:log]           = activity_log
+  end
+
   protected
 
   def setup_email(user)
-    @recipients  = "#{user.email}"
+    @recipients  = "#{user.respond_to?(:email) ? user.email : user}"
     @from        = "billing@example.com"
     @sent_on     = Time.now
     @body[:user] = user

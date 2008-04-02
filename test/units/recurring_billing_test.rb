@@ -14,6 +14,14 @@ class RecurringBillingTest < Test::Unit::TestCase
     Subscription.run_billing
   end
 
+  def test_run_billing_sends_report
+    Subscription.stubs(:process_new_transactions)
+    Freemium.stubs(:admin_report_recipients).returns("test@example.com")
+
+    Freemium.mailer.expects(:deliver_admin_report)
+    Subscription.run_billing
+  end
+
   def test_subscriptions_to_expire
     # making a one-off fixture set, basically
     create_billable_subscription # this subscription qualifies

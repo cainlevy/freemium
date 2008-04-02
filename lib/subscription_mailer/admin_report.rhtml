@@ -1,0 +1,4 @@
+<% @log.each do |subscription, events| %>
+subscription #<%= subscription.id %> (billing key <%= subscription.billing_key %>)
+<%= events.collect{|e| "- #{e.to_s}"}.join("\n") %>
+<% end %>
