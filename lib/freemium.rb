@@ -37,7 +37,9 @@ module Freemium
       @expired_plan ||= SubscriptionPlan.find(:first, :conditions => "rate_cents = 0")
     end
 
-    # If you want to receive reports whenever the run_billing process executes, supply an email (or list of emails) here
+    # If you want to receive admin reports, enter an email (or list of emails) here.
+    # These will be bcc'd on all SubscriptionMailer emails, and will also receive the
+    # admin activity report.
     attr_accessor :admin_report_recipients
   end
 end
