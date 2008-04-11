@@ -1,3 +1,5 @@
+require 'net/http'
+require 'net/https'
 module Freemium
   module Gateways
     # = Setup and Configuration
@@ -25,14 +27,14 @@ module Freemium
       #def transactions(options = {}); end
 
       # Stores a card in SecureVault.
-      def store(credit_card, address)
+      def store(credit_card, address = nil)
         p = Post.new(URL, {
           :username => self.username,
           :password => self.password,
           :customer_vault => "add_customer"
         })
         p.params.merge! params_for_credit_card(credit_card)
-        p.params.merge! params_for_address(address)
+        p.params.merge! params_for_address(address)         if address
         p.commit
         return p
       end

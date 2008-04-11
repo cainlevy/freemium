@@ -62,4 +62,11 @@ class BrainTreeGatewayTest < Test::Unit::TestCase
     transaction = @gateway.charge(vault_id, Money.new(54))
     assert !transaction.success?
   end
+
+  def test_storage_without_address
+    post = @gateway.store(@card)
+    assert post.success?, "transaction was accepted"
+    assert_not_nil post.response['customer_vault_id']
+    assert_equal "Customer Added", post.response['responsetext']
+  end
 end
