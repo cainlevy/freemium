@@ -45,8 +45,7 @@ module ActiveMerchant #:nodoc:
         # - http://perl.about.com/compute/perl/library/nosearch/P073000.htm
         # - http://www.beachnet.com/~hstiles/cardtype.html
         def valid_number?(number)
-          valid_test_mode_card_number?(number) || 
-            valid_card_number_length?(number) && 
+          valid_card_number_length?(number) && 
             valid_checksum?(number)
         end
         
@@ -73,8 +72,6 @@ module ActiveMerchant #:nodoc:
         #   end
         # 
         def type?(number)
-          return 'bogus' if valid_test_mode_card_number?(number)
-
           card_companies.reject { |c,p| c == 'maestro' }.each do |company, pattern|
             return company.dup if number =~ pattern 
           end
@@ -101,11 +98,6 @@ module ActiveMerchant #:nodoc:
         
         def valid_card_number_length?(number) #:nodoc:
           number.to_s.length >= 12
-        end
-        
-        def valid_test_mode_card_number?(number) #:nodoc:
-          ActiveMerchant::Billing::Base.test? && 
-            %w[1 2 3 success failure error].include?(number.to_s)
         end
         
         # Checks the validity of a card number by use of the the Luhn Algorithm. 
