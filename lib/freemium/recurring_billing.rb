@@ -52,7 +52,7 @@ module Freemium
         find(
           :all,
           :include => :subscription_plan,
-          :conditions => ['rate_cents > 0 AND paid_through < ? AND (expire_on IS NULL OR expire_on < paid_through)', Date.today]
+          :conditions => ['subscription_plans.rate_cents > 0 AND paid_through < ? AND (expire_on IS NULL OR expire_on < paid_through)', Date.today]
         )
       end
     end
