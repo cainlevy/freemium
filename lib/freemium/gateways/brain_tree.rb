@@ -114,7 +114,7 @@ module Freemium
           data = parse(post)
           # from BT API: 1 means approved, 2 means declined, 3 means error
           success = data['response'].to_i == 1
-          @response = Response.new(success, data)
+          @response = Freemium::Response.new(success, data)
           @response.billing_key = data['customer_vault_id']
           @response.message = data['responsetext']
           return self
