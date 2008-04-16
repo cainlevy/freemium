@@ -110,16 +110,16 @@ class SubscriptionTest < Test::Unit::TestCase
   def test_grace_and_expiration
     assert_equal 3, Freemium.days_grace, "test assumption"
 
-    # an old expiration that should be ignored
-    subscription = Subscription.new(:paid_through => Date.today + 5, :expire_on => Date.today - 20)
+    subscription = Subscription.new(:paid_through => Date.today + 5)
     assert !subscription.in_grace?
     assert !subscription.expired?
 
     # a subscription that's pastdue but hasn't been flagged to expire yet.
     # this could happen if a billing process skips, in which case the subscriber
     # should still get a full grace period beginning from the failed attempt at billing.
-    subscription = Subscription.new(:paid_through => Date.today - 5, :expire_on => Date.today - 20)
-    assert !subscription.in_grace?
+    # even so, the subscription is "in grace", even if the grace period hasn't officially started.
+    subscription = Subscription.new(:paid_through => Date.today - 5)
+    assert subscription.in_grace?
     assert !subscription.expired?
 
     # expires tomorrow
