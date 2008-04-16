@@ -36,7 +36,7 @@ module Freemium
         p.params.merge! params_for_credit_card(credit_card)
         p.params.merge! params_for_address(address)         if address
         p.commit
-        return p
+        return p.response
       end
 
       # Updates a card in SecureVault.
@@ -50,7 +50,7 @@ module Freemium
         p.params.merge! params_for_credit_card(credit_card) if credit_card
         p.params.merge! params_for_address(address)         if address
         p.commit
-        return p
+        return p.response
       end
 
       # Manually charges a card in SecureVault. Called automatically as part of manual billing process.
@@ -62,7 +62,7 @@ module Freemium
           :amount => sprintf("%.2f", amount.cents.to_f / 100)
         })
         p.commit
-        return Freemium::Transaction.new(:billing_key => vault_id, :amount => amount, :success => p.success?)
+        return Freemium::Transaction.new(:billing_key => vault_id, :amount => amount, :success => p.response.success?)
       end
 
       # Removes a card from SecureVault. Called automatically when the subscription expires.
@@ -74,7 +74,7 @@ module Freemium
           :customer_vault_id => vault_id
         })
         p.commit
-        return p.success?
+        return p.response
       end
 
       protected
@@ -102,8 +102,8 @@ module Freemium
 
       class Post
         attr_accessor :url
-        attr_accessor :response
         attr_accessor :params
+        attr_reader :response
 
         def initialize(url, params = {})
           self.url = url
@@ -111,13 +111,13 @@ module Freemium
         end
 
         def commit
-          self.response = parse(post)
-          return self
-        end
-
-        def success?
+          data = parse(post)
           # from BT API: 1 means approved, 2 means declined, 3 means error
-          self.response['response'].to_i == 1
+          success = data['response'].to_i == 1
+          @response = Response.new(success, data)
+          @response.billing_key = data['customer_vault_id']
+          @response.message = data['responsetext']
+          return self
         end
 
         protected

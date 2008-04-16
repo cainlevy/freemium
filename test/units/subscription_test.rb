@@ -144,6 +144,42 @@ class SubscriptionTest < Test::Unit::TestCase
     subscriptions(:bobs_subscription).destroy
   end
 
+  ##
+  ## The Subscription#credit_card= shortcut
+  ##
+  def test_adding_a_credit_card
+    subscription = Subscription.new
+    cc = Freemium::CreditCard.new
+    response = Freemium::Response.new(true)
+    response.billing_key = "alphabravo"
+    Freemium.gateway.expects(:store).with(cc).returns(response)
+
+    assert_nothing_raised do subscription.credit_card = cc end
+    assert_equal "alphabravo", subscription.billing_key
+    assert subscription.new_record?
+  end
+
+  def test_updating_a_credit_card
+    subscription = Subscription.find(:first, :conditions => "billing_key IS NOT NULL")
+    cc = Freemium::CreditCard.new
+    response = Freemium::Response.new(true)
+    response.billing_key = "new code"
+    Freemium.gateway.expects(:update).with(subscription.billing_key, cc).returns(response)
+
+    assert_nothing_raised do subscription.credit_card = cc end
+    assert_equal "new code", subscription.billing_key, "catches any change to the billing key"
+    assert subscription.reload.billing_key != "new code", "change was not saved"
+  end
+
+  def test_failing_to_add_a_credit_card
+    subscription = Subscription.new
+    cc = Freemium::CreditCard.new
+    response = Freemium::Response.new(false)
+    Freemium.gateway.expects(:store).returns(response)
+
+    assert_raises Freemium::CreditCardStorageError do subscription.credit_card = cc end
+  end
+
   protected
 
   def create_subscription(options = {})

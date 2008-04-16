@@ -1,4 +1,6 @@
 module Freemium
+  class CreditCardStorageError < RuntimeError; end
+
   class << self
     # Lets you configure which ActionMailer class contains appropriate
     # mailings for invoices, expiration warnings, and expiration notices.

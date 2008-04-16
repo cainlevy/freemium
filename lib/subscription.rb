@@ -95,6 +95,24 @@ class Subscription < ActiveRecord::Base
     expire_on and expire_on <= Date.today
   end
 
+  # Simple assignment of a credit card. Note that this may not be
+  # useful for your particular situation, especially if you need
+  # to simultaneously set up automated recurrences.
+  #
+  # Because of the third-party interaction with the gateway, you
+  # need to be careful to only use this method when you expect to
+  # be able to save the record successfully. Otherwise you may end
+  # up storing a credit card in the gateway and then losing the key.
+  #
+  # NOTE: Support for updating an address could easily be added
+  # with an "address" property on the credit card.
+  def credit_card=(cc)
+    response = (billing_key) ? Freemium.gateway.update(billing_key, cc) : Freemium.gateway.store(cc)
+    raise Freemium::CreditCardStorageError.new(response.message) unless response.success?
+    self.billing_key = response.billing_key
+    return cc
+  end
+
   protected
 
   # extends the paid_through period according to how much money was received.

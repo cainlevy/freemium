@@ -25,11 +25,11 @@ class BrainTreeGatewayTest < Test::Unit::TestCase
 
   def test_lifecycle
     # store
-    post = @gateway.store(@card, @address)
-    vault_id = post.response['customer_vault_id']
-    assert post.success?, "transaction was accepted"
+    response = @gateway.store(@card, @address)
+    vault_id = response.billing_key
+    assert response.success?, "transaction was accepted"
     assert_not_nil vault_id, "customer was assigned a vault_id"
-    assert_equal "Customer Added", post.response['responsetext']
+    assert_equal "Customer Added", response['responsetext']
 
     # charge
     transaction = @gateway.charge(vault_id, Money.new(1295))
@@ -39,24 +39,25 @@ class BrainTreeGatewayTest < Test::Unit::TestCase
 
     # update
     @card.last_name = "Burninator"
-    post = @gateway.update(vault_id, @card)
-    assert post.success?
-    assert_equal "Customer Update Successful", post.response['responsetext']
+    response = @gateway.update(vault_id, @card)
+    assert response.success?
+    assert_equal "Customer Update Successful", response.message
 
     # delete (cancel)
-    assert @gateway.cancel(vault_id)
+    response = @gateway.cancel(vault_id)
+    assert response.success?
   end
 
   def test_failed_storage
     @card.number = ''
-    post = @gateway.store(@card, @address)
-    assert !post.success?
-    assert post.response['response']
+    response = @gateway.store(@card, @address)
+    assert !response.success?
+    assert response['response']
   end
 
   def test_failed_charge
-    post = @gateway.store(@card, @address)
-    vault_id = post.response['customer_vault_id']
+    response = @gateway.store(@card, @address)
+    vault_id = response.billing_key
 
     # any amount under one dollar should fail in the BrainTree test environment
     transaction = @gateway.charge(vault_id, Money.new(54))
@@ -64,9 +65,9 @@ class BrainTreeGatewayTest < Test::Unit::TestCase
   end
 
   def test_storage_without_address
-    post = @gateway.store(@card)
-    assert post.success?, "transaction was accepted"
-    assert_not_nil post.response['customer_vault_id']
-    assert_equal "Customer Added", post.response['responsetext']
+    response = @gateway.store(@card)
+    assert response.success?, "transaction was accepted"
+    assert_not_nil response.billing_key
+    assert_equal "Customer Added", response.message
   end
 end
